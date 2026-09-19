@@ -1,0 +1,41 @@
+1
+00:00:00,000 --> 00:00:01,000
+<font size="28">FrameCnt: 1, DiffTime: 1000ms
+2026-05-27 09:00:00.000
+[latitude: 17.385000] [longitude: 78.486671] [rel_alt: 30.000 abs_alt: 600.000] </font>
+
+2
+00:00:01,000 --> 00:00:02,000
+<font size="28">FrameCnt: 2, DiffTime: 1000ms
+2026-05-27 09:00:01.000
+[latitude: 17.385045] [longitude: 78.486671] [rel_alt: 31.000 abs_alt: 601.000] </font>
+
+3
+00:00:02,000 --> 00:00:03,000
+<font size="28">FrameCnt: 3, DiffTime: 1000ms
+2026-05-27 09:00:02.000
+[latitude: 17.385090] [longitude: 78.486671] [rel_alt: 32.000 abs_alt: 602.000] </font>
+
+4
+00:00:03,000 --> 00:00:04,000
+<font size="28">FrameCnt: 4, DiffTime: 1000ms
+2026-05-27 09:00:03.000
+[latitude: 17.435135] [longitude: 78.486671] [rel_alt: 33.000 abs_alt: 603.000] </font>
+
+5
+00:00:04,000 --> 00:00:05,000
+<font size="28">FrameCnt: 5, DiffTime: 1000ms
+2026-05-27 09:00:04.000
+[latitude: 17.385180] [longitude: 78.486671] [rel_alt: 34.000 abs_alt: 604.000] </font>
+
+6
+00:00:05,000 --> 00:00:06,000
+<font size="28">FrameCnt: 6, DiffTime: 1000ms
+2026-05-27 09:00:05.000
+[latitude: 17.385225] [longitude: 78.486671] [rel_alt: 35.000 abs_alt: 605.000] </font>
+
+7
+00:00:06,000 --> 00:00:07,000
+<font size="28">FrameCnt: 7, DiffTime: 1000ms
+2026-05-27 09:00:06.000
+[latitude: 17.385270] [longitude: 78.486671] [rel_alt: 36.000 abs_alt: 606.000] </font>

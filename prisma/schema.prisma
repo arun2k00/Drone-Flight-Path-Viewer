@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Project {
+  id                String   @id @default(uuid())
+  name              String
+  companyName       String?
+  /// DRAFT | ANALYZING | READY | ERROR
+  status            String   @default("DRAFT")
+  errorCode         String?
+  errorMessage      String?
+  /// VideoMetadata (src/types/video.ts)
+  videoMetadata     Json?
+  /// TelemetrySummary (src/types/telemetry.ts)
+  telemetrySummary  Json?
+  /// SyncReport (src/types/telemetry.ts)
+  syncReport        Json?
+  /// TelemetrySettings (src/types/telemetry.ts)
+  telemetrySettings Json
+  /// OverlayConfig (src/lib/overlay/model.ts)
+  overlayConfig     Json
+  /// Owner; null only for projects created before accounts existed (admin-only until reassigned)
+  userId            String?
+  user              User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  files      StoredFile[]
+  uploads    Upload[]
+  jobs       RenderJob[]
+  shareLinks ShareLink[]
+
+  @@index([userId, createdAt])
+}
+
+model StoredFile {
+  id           String   @id @default(uuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  /// VIDEO | TELEMETRY | LOGO | LOGO_SOURCE | EXPORT
+  role         String
+  originalName String
+  storageKey   String   @unique
+  mimeType     String
+  /// bytes (Float: exact to 9e15, JSON-safe)
+  sizeBytes    Float
+  createdAt    DateTime @default(now())
+
+  @@index([projectId, role])
+}
+
+model Upload {
+  id            String   @id @default(uuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  /// VIDEO | TELEMETRY | LOGO
+  role          String
+  originalName  String
+  mimeType      String
+  sizeBytes     Float
+  receivedBytes Float    @default(0)
+  chunkSize     Int
+  tempKey       String   @unique
+  /// PENDING | COMPLETE | ABORTED
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([projectId, status])
+}
+
+model RenderJob {
+  id                        String    @id @default(uuid())
+  projectId                 String
+  project                   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  /// EXPORT
+  kind                      String    @default("EXPORT")
+  /// QUEUED | RUNNING | COMPLETE | FAILED | CANCELLED
+  status                    String    @default("QUEUED")
+  /// PREPARING_TELEMETRY | GENERATING_FLIGHT_PATH | RENDERING_OVERLAY | ENCODING_VIDEO | FINALIZING
+  phase                     String?
+  progress                  Float     @default(0)
+  framesDone                Int?
+  framesTotal               Int?
+  /// ExportSettings
+  settings                  Json
+  /// OverlayConfig snapshot at submission (reproducibility, spec §7)
+  overlaySnapshot           Json
+  /// TelemetrySettings snapshot at submission
+  telemetrySettingsSnapshot Json
+  /// WarningDto[]
+  warnings                  Json?
+  outputFileId              String?
+  errorCode                 String?
+  errorMessage              String?
+  /// storage key of ffmpeg.log (never sent to clients)
+  logKey                    String?
+  createdAt                 DateTime  @default(now())
+  startedAt                 DateTime?
+  finishedAt                DateTime?
+
+  @@index([projectId, createdAt])
+  @@index([status])
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  /// USER | ADMIN
+  role         String    @default("USER")
+  /// ACTIVE | SUSPENDED
+  status       String    @default("ACTIVE")
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sessions   Session[]
+  resets     PasswordReset[]
+  projects   Project[]
+  shareLinks ShareLink[]
+  activities Activity[]
+}
+
+/// id = sha256(cookie token); the raw token only ever lives in the browser cookie
+model Session {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+/// id = sha256(emailed token)
+model PasswordReset {
+  id        String    @id
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+/// Temporary public link for a client: no account needed, expires, revocable
+model ShareLink {
+  id             String    @id @default(uuid())
+  token          String    @unique
+  projectId      String
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdById    String
+  createdBy      User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  recipientName  String?
+  recipientEmail String?
+  message        String?
+  allowDownload  Boolean   @default(true)
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  viewCount      Int       @default(0)
+  lastViewedAt   DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([projectId])
+  @@index([createdById])
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  /// e.g. auth.login, project.create, export.complete, share.create, admin.user.suspend
+  action    String
+  detail    String?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+}
+
+model EmailLog {
+  id        String   @id @default(uuid())
+  to        String
+  template  String
+  subject   String
+  /// SENT | SAVED (no SMTP configured, written to storage/outbox) | FAILED
+  status    String
+  error     String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// Admin-editable site content (landing page copy, signup toggle); value is JSON
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

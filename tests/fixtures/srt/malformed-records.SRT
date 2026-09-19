@@ -1,0 +1,33 @@
+1
+00:00:00,000 --> 00:00:00,040
+<font size="28">FrameCnt: 1, DiffTime: 40ms
+2026-05-27 13:14:22.911
+[latitude: 17.385044] [longitude: 78.486671] [rel_alt: 10.000 abs_alt: 500.000] </font>
+
+2
+00:00:0x,040 --> 00:00:00,080
+<font size="28">FrameCnt: 2, DiffTime: 40ms
+[latitude: 17.385045] [longitude: 78.486672] [rel_alt: 10.100 abs_alt: 500.100] </font>
+
+3
+00:00:00,200 --> 00:00:00,120
+<font size="28">FrameCnt: 3, DiffTime: 40ms
+[latitude: 17.385046] [longitude: 78.486673] [rel_alt: 10.200 abs_alt: 500.200] </font>
+
+4
+00:00:00,120 --> 00:00:00,160
+<font size="28">FrameCnt: 4, DiffTime: 40ms
+[latitude: abc] [longitude: 78.486674] [rel_alt: 10.300 abs_alt: 500.300] </font>
+
+5
+00:00:00,160 --> 00:00:00,200
+
+
+6
+00:00:00,200 --> 00:00:00,240
+this line has no telemetry fields at all
+
+7
+00:00:00,240 --> 00:00:00,280
+<font size="28">FrameCnt: 7, DiffTime: 40ms
+[latitude: 17.385048] [longitude: 78.486675] [rel_alt: 10.600 abs_alt: 500.600] </font>

@@ -1,0 +1,29 @@
+1
+00:00:00,000 --> 00:00:00,040
+<font size="28">FrameCnt: 1, DiffTime: 40ms
+2026-05-27 09:00:00.000
+[iso: 100] [shutter: 1/500.0] [fnum: 1.8] [ev: 0] [color_md: default] [focal_len: 24.00] [latitude: 17.385044] [longitude: 78.486671] [ct: 5300] </font>
+
+2
+00:00:00,040 --> 00:00:00,080
+<font size="28">FrameCnt: 2, DiffTime: 40ms
+2026-05-27 09:00:00.040
+[iso: 100] [shutter: 1/500.0] [fnum: 1.8] [ev: 0] [color_md: default] [focal_len: 24.00] [latitude: 17.385045] [longitude: 78.486672] [ct: 5300] </font>
+
+3
+00:00:00,080 --> 00:00:00,120
+<font size="28">FrameCnt: 3, DiffTime: 40ms
+2026-05-27 09:00:00.080
+[iso: 100] [shutter: 1/500.0] [fnum: 1.8] [ev: 0] [color_md: default] [focal_len: 24.00] [latitude: 17.385046] [longitude: 78.486673] [ct: 5300] </font>
+
+4
+00:00:00,120 --> 00:00:00,160
+<font size="28">FrameCnt: 4, DiffTime: 40ms
+2026-05-27 09:00:00.120
+[iso: 100] [shutter: 1/500.0] [fnum: 1.8] [ev: 0] [color_md: default] [focal_len: 24.00] [latitude: 17.385047] [longitude: 78.486674] [ct: 5300] </font>
+
+5
+00:00:00,160 --> 00:00:00,200
+<font size="28">FrameCnt: 5, DiffTime: 40ms
+2026-05-27 09:00:00.160
+[iso: 100] [shutter: 1/500.0] [fnum: 1.8] [ev: 0] [color_md: default] [focal_len: 24.00] [latitude: 17.385048] [longitude: 78.486675] [ct: 5300] </font>

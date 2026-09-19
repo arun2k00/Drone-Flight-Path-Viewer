@@ -1,0 +1,11 @@
+1
+00:00:00,000 --> 00:00:02,000
+Welcome to the site survey.
+
+2
+00:00:02,000 --> 00:00:04,000
+Take-off in three minutes.
+
+3
+00:00:04,000 --> 00:00:06,000
+Checking battery levels.

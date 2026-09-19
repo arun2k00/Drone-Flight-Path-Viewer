@@ -1,0 +1,9 @@
+node_modules
+.next
+storage
+.env*
+tests/fixtures/generated
+tests/fixtures/real
+docs
+.git
+*.log
