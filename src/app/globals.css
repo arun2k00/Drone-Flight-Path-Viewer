@@ -138,10 +138,3 @@
     @apply bg-background text-foreground text-[13px];
   }
 }
-
-/* FlightArt: animated marker, or a static one when the user prefers reduced motion. */
-.fa-drone-static { display: none; }
-@media (prefers-reduced-motion: reduce) {
-  .fa-drone { display: none; }
-  .fa-drone-static { display: inline; }
-}

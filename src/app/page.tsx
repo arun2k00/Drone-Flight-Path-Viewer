@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
 import {
   ArrowRight,
   BarChart3,
+  CircleCheck,
   Clapperboard,
   Clock,
   Download,
@@ -27,7 +29,7 @@ import { GitHubLink } from "@/components/brand/GitHubLink";
 import { Logo } from "@/components/brand/Logo";
 import { ManagedBy } from "@/components/brand/ManagedBy";
 import { REPO_URL } from "@/lib/site/links";
-import { ProductMock } from "@/components/landing/ProductMock";
+import heroProduct from "@/components/landing/hero-product.webp";
 import { getCurrentUser } from "@/lib/auth/session.server";
 import { getSiteSettings } from "@/lib/site/settings.server";
 
@@ -161,31 +163,86 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative overflow-hidden">
-          <div
-            className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)] opacity-60"
-            aria-hidden="true"
-          />
-          <div className="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24">
-            <div className="mx-auto max-w-3xl text-center">
-              <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary sm:text-sm">
-                <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
-                {site.heroEyebrow}
-              </p>
-              <h1 className="mt-6 text-4xl font-semibold tracking-tight text-balance sm:text-6xl sm:leading-[1.05]">{site.heroTitle}</h1>
-              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-pretty text-muted-foreground">{site.heroSubtitle}</p>
-              <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Link href={primaryHref} className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-6 font-medium text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90">
-                  {primaryLabel} <ArrowRight className="size-4" aria-hidden="true" />
+        <section className="relative isolate overflow-hidden">
+          {/* Ambient light: warm brand glow top-left, cool glow matching the map on the right, fine grid fading out. */}
+          <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+            <div className="absolute -top-48 left-1/2 h-[520px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(245,158,11,0.22),transparent)]" />
+            <div className="absolute top-[420px] -right-40 h-[520px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(14,165,233,0.14),transparent)]" />
+            <div className="absolute top-[360px] -left-40 h-[480px] w-[560px] rounded-full bg-[radial-gradient(closest-side,rgba(194,86,12,0.12),transparent)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_70%_55%_at_50%_0%,black,transparent)] opacity-50" />
+          </div>
+
+          <div className="mx-auto max-w-6xl px-4 pt-14 pb-24 sm:px-6 sm:pt-20">
+            <div className="mx-auto max-w-4xl text-center">
+              <a
+                href={REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2 rounded-full border border-border bg-card/80 py-1 pr-3 pl-1 text-xs font-medium shadow-sm backdrop-blur transition-colors hover:border-primary/40 sm:text-sm"
+              >
+                <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap text-primary-foreground">Open source</span>
+                <span className="text-left text-muted-foreground group-hover:text-foreground">{site.heroEyebrow}</span>
+                <ArrowRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </a>
+              <h1 className="mt-7 bg-gradient-to-b from-[#14181f] via-[#14181f] to-[#14181f]/70 bg-clip-text text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance text-transparent sm:text-6xl lg:text-7xl">
+                {site.heroTitle}
+              </h1>
+              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-pretty text-muted-foreground sm:text-xl">{site.heroSubtitle}</p>
+              <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Link
+                  href={primaryHref}
+                  className="group inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-b from-[#d4661a] to-primary px-7 font-medium text-primary-foreground shadow-[0_10px_30px_-8px_rgba(194,86,12,0.6),inset_0_1px_0_rgba(255,255,255,0.25)] transition-transform hover:-translate-y-0.5"
+                >
+                  {primaryLabel} <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                 </Link>
-                <Link href="/viewer" className="inline-flex h-12 items-center gap-2 rounded-xl border border-border bg-card px-6 font-medium shadow-sm hover:bg-muted">
+                <Link
+                  href="/viewer"
+                  className="inline-flex h-12 items-center gap-2 rounded-xl border border-border bg-card/80 px-7 font-medium shadow-sm backdrop-blur transition-colors hover:bg-card"
+                >
                   <PlayCircle className="size-4 text-primary" aria-hidden="true" /> {site.ctaSecondary}
                 </Link>
               </div>
-              <p className="mt-5 text-sm text-muted-foreground">The Flight Viewer is free and runs in your browser. No upload, no account.</p>
+              <ul className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                {["Free Flight Viewer", "Nothing uploaded", "Self-hostable with Docker"].map((t) => (
+                  <li key={t} className="flex items-center gap-1.5">
+                    <CircleCheck className="size-4 text-success" aria-hidden="true" /> {t}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="mt-16">
-              <ProductMock />
+
+            {/* Product shot in a glass frame, with a soft glow and two floating status cards. */}
+            <div className="relative mx-auto mt-16 max-w-6xl sm:mt-20">
+              <div className="absolute -inset-x-6 -inset-y-8 -z-10 rounded-[40px] bg-gradient-to-tr from-[#f59e0b]/25 via-transparent to-sky-400/25 blur-3xl" aria-hidden="true" />
+              <div className="rounded-[22px] border border-white/60 bg-white/50 p-2 shadow-[0_40px_100px_-30px_rgba(20,24,31,0.45)] ring-1 ring-black/5 backdrop-blur-xl sm:p-3">
+                <Image
+                  src={heroProduct}
+                  alt="Aeroxpress player: drone video with a telemetry overlay, the synced flight path on a map, the altitude profile and flight statistics"
+                  priority
+                  placeholder="blur"
+                  sizes="(min-width: 1152px) 1152px, 100vw"
+                  className="h-auto w-full rounded-2xl"
+                />
+              </div>
+
+              <div className="absolute -top-5 -left-4 hidden items-center gap-3 rounded-2xl border border-border bg-card/90 px-4 py-3 shadow-xl backdrop-blur lg:flex">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-success/10 text-success">
+                  <Link2 className="size-4" aria-hidden="true" />
+                </span>
+                <div className="text-left">
+                  <p className="text-sm font-semibold">Client opened your link</p>
+                  <p className="text-xs text-muted-foreground">Ring Road Survey · just now</p>
+                </div>
+              </div>
+              <div className="absolute -right-6 -bottom-12 hidden items-center gap-3 rounded-2xl border border-border bg-card/90 px-4 py-3 shadow-xl backdrop-blur lg:flex">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Download className="size-4" aria-hidden="true" />
+                </span>
+                <div className="text-left">
+                  <p className="text-sm font-semibold">Export ready</p>
+                  <p className="text-xs text-muted-foreground">4K MP4 · telemetry burned in</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
