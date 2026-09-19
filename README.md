@@ -71,7 +71,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-Open <http://localhost:3470> and create an account. **The first account becomes the admin.**
+Open <http://localhost:3470> and create an account. **The first account becomes the admin**, unless `ADMIN_EMAIL` is set, in which case only that address does.
 
 Without SMTP settings, emails are written to `storage/outbox/*.html`, so you can open them in a browser.
 
@@ -132,7 +132,7 @@ has a working default, so `.env.example` runs as-is locally.
 | Variable | Default | Purpose |
 |---|---|---|
 | `APP_URL` | `http://localhost:3470` | Public URL used in emails and share links. `https://` makes cookies `Secure`. |
-| `ADMIN_EMAIL` | empty | Signing up with this address creates an admin. |
+| `ADMIN_EMAIL` | empty | Only this address becomes admin (recommended in production). Empty → the first account is the admin. |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASS` | empty / `587` | Outgoing mail. Empty host → emails saved to `<STORAGE_PATH>/outbox`. |
 | `MAIL_FROM` | `Aeroxpress <no-reply@aeroxpress.local>` | Sender address. |
 | `DATABASE_URL` | `file:./storage/app.db` | SQLite database. |

@@ -47,12 +47,13 @@ export async function registerUser(raw: unknown): Promise<AuthFailure | null> {
       return { fieldErrors: { email: ["An account with this email already exists. Log in instead."] } };
     }
 
-    const isAdmin = userCount === 0 || input.email === config.ADMIN_EMAIL;
+    // With ADMIN_EMAIL set, only that address becomes admin; otherwise the very first account does.
+    const isAdmin = config.ADMIN_EMAIL ? input.email === config.ADMIN_EMAIL : userCount === 0;
     const user = await prisma.user.create({
       data: { name: input.name, email: input.email, passwordHash: await hashPassword(input.password), role: isAdmin ? "ADMIN" : "USER", lastLoginAt: new Date() },
     });
     // Projects created before accounts existed belong to the first admin.
-    if (userCount === 0) await prisma.project.updateMany({ where: { userId: null }, data: { userId: user.id } });
+    if (isAdmin && userCount === 0) await prisma.project.updateMany({ where: { userId: null }, data: { userId: user.id } });
 
     await createSession(user.id);
     await logActivity(user.id, "auth.signup", isAdmin ? "admin account" : undefined);
