@@ -32,9 +32,10 @@ export function getPublicConfig(): PublicConfig {
         maxzoom: 19,
       },
     },
+    // Same rule as basemapTemplateUrl(): tiles are only fetched over https, so an http URL leaves the option off.
     overlayBasemaps: {
-      map: config.OVERLAY_MAP_TILE_URL !== null,
-      satellite: config.OVERLAY_SATELLITE_TILE_URL !== null,
+      map: config.OVERLAY_MAP_TILE_URL?.startsWith("https://") ?? false,
+      satellite: config.OVERLAY_SATELLITE_TILE_URL?.startsWith("https://") ?? false,
     },
     diagnosticsEnabled: config.ENABLE_DIAGNOSTICS,
     uploadLimits: {

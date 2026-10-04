@@ -116,3 +116,12 @@ describe("createInterpolator — latitude/longitude pair and the antimeridian", 
     expect(Math.abs(s.longitude as number)).toBeCloseTo(180, 1);
   });
 });
+
+describe("createInterpolator — long flights", () => {
+  it("builds the time range of a 300k-sample series without overflowing the stack", () => {
+    const times = Array.from({ length: 300_000 }, (_, i) => i / 60);
+    const { range } = createInterpolator(mkSeries(times));
+    expect(range.start).toBe(-0.5);
+    expect(range.end).toBeCloseTo(times[times.length - 1] + 0.5, 9);
+  });
+});

@@ -29,7 +29,12 @@ export function useBasemap(
       const url = `/api/projects/${projectId}/basemap?style=${style}&aspect=${aspect.toFixed(3)}&width=${Math.round(widthPx)}&padding=${paddingRatio}`;
       fetch(url)
         .then(async (res) => {
-          if (!res.ok || cancelled) return;
+          if (cancelled) return;
+          if (!res.ok) {
+            // Don't keep showing the previous style's image: the export would draw no basemap here.
+            setAsset(null);
+            return;
+          }
           const attribution = decodeURIComponent(res.headers.get("X-Basemap-Attribution") ?? "");
           const blob = await res.blob();
           if (cancelled) return;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseTelemetryNumber } from "@/lib/telemetry/numbers";
+import { maxOf, minOf, parseTelemetryNumber } from "@/lib/telemetry/numbers";
 
 describe("parseTelemetryNumber", () => {
   it("accepts an unambiguous decimal comma", () => {
@@ -26,5 +26,20 @@ describe("parseTelemetryNumber", () => {
 
   it("parses negative numbers", () => {
     expect(parseTelemetryNumber("-128.769")).toEqual({ value: -128.769, unit: null });
+  });
+});
+
+describe("minOf / maxOf", () => {
+  it("match Math.min / Math.max, including the empty case", () => {
+    expect(minOf([3, -1, 2])).toBe(-1);
+    expect(maxOf(Float64Array.from([3, -1, 2]))).toBe(3);
+    expect(minOf([])).toBe(Infinity);
+    expect(maxOf([])).toBe(-Infinity);
+  });
+
+  it("handle one value per cue of a long 60 fps flight (spreading these overflows the stack)", () => {
+    const values = Array.from({ length: 300_000 }, (_, i) => i % 1000);
+    expect(minOf(values)).toBe(0);
+    expect(maxOf(values)).toBe(999);
   });
 });

@@ -1,4 +1,5 @@
 import { createCanvas, loadImage } from "@napi-rs/canvas";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { isPngSignature, isWebpSignature, looksLikeSvg, rasterizeLogo } from "@/lib/uploads/logo.server";
 
@@ -88,5 +89,35 @@ describe("rasterizeLogo", () => {
 
   it("throws AppError('LOGO_INVALID') for malformed SVG markup", async () => {
     await expect(rasterizeLogo(bytesFromAscii("<svg><unclosed"), ".svg")).rejects.toMatchObject({ code: "LOGO_INVALID" });
+  });
+
+  it("fits a tall SVG's height, not its width, to the 1024px long-side cap", async () => {
+    const tall = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="1000"><rect width="100" height="1000"/></svg>';
+    const decoded = await loadImage(await rasterizeLogo(bytesFromAscii(tall), ".svg"));
+    expect(decoded.height).toBe(1024);
+    expect(decoded.width).toBeLessThanOrEqual(103);
+  });
+
+  it("refuses SVG images that resvg would read from the server's disk", async () => {
+    const serverImage = path.resolve("public/brand/aeroxpress-mark.png");
+    const svg = (image: string, prolog = "") =>
+      bytesFromAscii(`${prolog}<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="50" height="50">${image}</svg>`);
+    for (const bytes of [
+      svg(`<image href="${serverImage}" width="50" height="50"/>`),
+      svg(`<image xlink:href='public/brand/aeroxpress-mark.png' width="50" height="50"/>`),
+      svg(`<filter id="f"><feImage href="${serverImage}"/></filter>`),
+      svg('<image href="&p;" width="50" height="50"/>', `<!DOCTYPE svg [<!ENTITY p "${serverImage}">]>`),
+    ]) {
+      await expect(rasterizeLogo(bytes, ".svg")).rejects.toMatchObject({ code: "LOGO_INVALID" });
+    }
+  });
+
+  it("still accepts in-document references, embedded raster images and links", async () => {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="50" height="50">
+      <defs><rect id="r" width="50" height="50"/></defs>
+      <a href="https://example.com"><use xlink:href="#r"/></a>
+      <image href="data:image/png;base64,${TINY_PNG_BASE64}" width="8" height="8"/>
+    </svg>`;
+    expect(isPngSignature(await rasterizeLogo(bytesFromAscii(svg), ".svg"))).toBe(true);
   });
 });

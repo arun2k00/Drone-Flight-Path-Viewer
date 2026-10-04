@@ -1,4 +1,5 @@
 import { normalize180, normalize360 } from "./normalizer";
+import { maxOf, minOf } from "./numbers";
 import type { TelemetrySeries } from "./series";
 
 export const MAX_INTERPOLATION_GAP_SEC = 2.0;
@@ -71,7 +72,7 @@ export function createInterpolator(series: TelemetrySeries, opts: { maxGapSec?: 
   }
 
   const range = series.length
-    ? { start: Math.min(...Array.from(series.start)), end: Math.max(...Array.from(series.end)) }
+    ? { start: minOf(series.start), end: maxOf(series.end) }
     : { start: 0, end: 0 };
   const allIndices = Int32Array.from({ length: series.length }, (_, i) => i);
 

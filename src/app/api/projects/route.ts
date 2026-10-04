@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parseBody, runRoute } from "@/lib/errors/route.server";
+import { parseBody, readJsonBody, runRoute } from "@/lib/errors/route.server";
 import { logActivity } from "@/lib/activity.server";
 import { requireUser } from "@/lib/auth/session.server";
 import { createProject, listProjects } from "@/lib/projects/service.server";
@@ -19,7 +19,7 @@ export async function GET() {
 export async function POST(req: Request) {
   return runRoute(async () => {
     const user = await requireUser();
-    const body = parseBody(createProjectSchema, await req.json());
+    const body = parseBody(createProjectSchema, await readJsonBody(req));
     const project = await createProject({ ...body, userId: user.id });
     await logActivity(user.id, "project.create", project.name);
     return Response.json({ project }, { status: 201 });

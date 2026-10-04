@@ -1,7 +1,7 @@
 import { logActivity } from "@/lib/activity.server";
 import { requireProjectAccess, requireUser } from "@/lib/auth/session.server";
 import { z } from "zod";
-import { parseBody, runRoute } from "@/lib/errors/route.server";
+import { parseBody, readJsonBody, runRoute } from "@/lib/errors/route.server";
 import { overlayConfigSchema } from "@/lib/overlay/model";
 import { deleteProject, getProjectDto, updateProject } from "@/lib/projects/service.server";
 
@@ -30,7 +30,7 @@ export async function GET(_req: Request, ctx: RouteContext<"/api/projects/[proje
 export async function PATCH(req: Request, ctx: RouteContext<"/api/projects/[projectId]">) {
   return runRoute(async () => {
     const projectId = await requireProjectAccess((await ctx.params).projectId);
-    const body = parseBody(patchProjectSchema, await req.json());
+    const body = parseBody(patchProjectSchema, await readJsonBody(req));
     const project = await updateProject(projectId, body);
     return Response.json({ project });
   });

@@ -85,6 +85,8 @@ export function createEditorStore(projectId: string, initial: InitialEditorState
   let pendingTelemetryPatch: Partial<TelemetrySettings> = {};
   let pendingProjectPatch: { name?: string; companyName?: string | null } = {};
   let configDirty = false;
+  let inFlight: Promise<void> | null = null;
+  const hasPendingChanges = () => Object.keys(pendingTelemetryPatch).length > 0 || Object.keys(pendingProjectPatch).length > 0 || configDirty;
 
   const store = createStore<EditorState>((set, get) => {
     const scheduleSave = () => {
@@ -288,6 +290,8 @@ export function createEditorStore(projectId: string, initial: InitialEditorState
       },
 
       removeElement(id) {
+        // Only video markers can be removed; anything else (e.g. Delete on a selected panel) must not touch the config or history.
+        if (!get().config.elements.some((el) => el.id === id && el.type === "videoMarker")) return;
         updateConfig((config) => ({ ...config, template: "custom", elements: config.elements.filter((el) => !(el.id === id && el.type === "videoMarker")) }));
         if (get().selectedId === id) set({ selectedId: null });
       },
@@ -313,7 +317,9 @@ export function createEditorStore(projectId: string, initial: InitialEditorState
           clearTimeout(debounceHandle);
           debounceHandle = null;
         }
-        if (Object.keys(pendingTelemetryPatch).length === 0 && Object.keys(pendingProjectPatch).length === 0 && !configDirty) return;
+        // One PATCH at a time: responses can't land out of order, and a caller (Export) also waits for a save already in flight.
+        while (inFlight) await inFlight;
+        if (!hasPendingChanges()) return;
 
         const telemetryBody = pendingTelemetryPatch;
         const projectBody = pendingProjectPatch;
@@ -323,32 +329,38 @@ export function createEditorStore(projectId: string, initial: InitialEditorState
         configDirty = false;
 
         set({ saveState: "saving" });
-        try {
-          const res = await fetch(`/api/projects/${projectId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ...projectBody,
-              ...(Object.keys(telemetryBody).length > 0 ? { telemetrySettings: telemetryBody } : {}),
-              ...(sendConfig ? { overlayConfig: get().config } : {}),
-            }),
-          });
-          if (!res.ok) throw new Error(`PATCH failed: ${res.status}`);
-          const json = (await res.json()) as PatchProjectResponse;
-          set({
-            projectName: json.project.name,
-            companyName: json.project.companyName,
-            telemetrySettings: json.project.telemetrySettings,
-            config: json.project.overlayConfig,
-            syncReport: json.project.syncReport,
-            saveState: "saved",
-          });
-        } catch {
-          pendingTelemetryPatch = { ...telemetryBody, ...pendingTelemetryPatch };
-          pendingProjectPatch = { ...projectBody, ...pendingProjectPatch };
-          configDirty = configDirty || sendConfig;
-          set({ saveState: "error" });
-        }
+        inFlight = (async () => {
+          try {
+            const res = await fetch(`/api/projects/${projectId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ...projectBody,
+                ...(Object.keys(telemetryBody).length > 0 ? { telemetrySettings: telemetryBody } : {}),
+                ...(sendConfig ? { overlayConfig: get().config } : {}),
+              }),
+            });
+            if (!res.ok) throw new Error(`PATCH failed: ${res.status}`);
+            const json = (await res.json()) as PatchProjectResponse;
+            // Edits made while the request was in flight are newer than the response: keep them, the next save sends them.
+            set({
+              ...("name" in pendingProjectPatch ? {} : { projectName: json.project.name }),
+              ...("companyName" in pendingProjectPatch ? {} : { companyName: json.project.companyName }),
+              telemetrySettings: { ...json.project.telemetrySettings, ...pendingTelemetryPatch },
+              ...(configDirty ? {} : { config: json.project.overlayConfig }),
+              syncReport: json.project.syncReport,
+              saveState: hasPendingChanges() ? "dirty" : "saved",
+            });
+          } catch {
+            pendingTelemetryPatch = { ...telemetryBody, ...pendingTelemetryPatch };
+            pendingProjectPatch = { ...projectBody, ...pendingProjectPatch };
+            configDirty = configDirty || sendConfig;
+            set({ saveState: "error" });
+          } finally {
+            inFlight = null;
+          }
+        })();
+        await inFlight;
       },
     };
   });

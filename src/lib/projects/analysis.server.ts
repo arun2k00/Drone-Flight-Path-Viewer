@@ -5,7 +5,7 @@ import { AppError } from "@/lib/errors/app-error";
 import { buildFlightPathGeoJson, extractGpsTrack } from "@/lib/map/geojson";
 import { getStorage } from "@/lib/storage/index.server";
 import { parseTelemetry } from "@/lib/telemetry/parser";
-import { saveFlightPath, saveTelemetry } from "@/lib/telemetry/persistence.server";
+import { deleteFlightPath, saveFlightPath, saveTelemetry } from "@/lib/telemetry/persistence.server";
 import { pointsToSeries } from "@/lib/telemetry/series";
 import { computeSyncReport } from "@/lib/telemetry/sync";
 import type { ProjectDto } from "@/types/api";
@@ -44,6 +44,7 @@ export async function analyzeProject(projectId: string): Promise<ProjectDto> {
       const pathFeature = flightPath.features.find((f) => f.properties.kind === "path");
       parsed.summary.pathLengthMeters = pathFeature && pathFeature.properties.kind === "path" ? pathFeature.properties.lengthMeters : null;
     } else {
+      await deleteFlightPath(projectId);
       parsed.summary.pathLengthMeters = null;
     }
 
