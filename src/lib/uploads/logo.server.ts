@@ -25,6 +25,22 @@ export function looksLikeSvg(bytes: Uint8Array): boolean {
   return /<svg[\s>]/i.test(head);
 }
 
+const HREF_ATTR = /(?:^|[\s"'<])(?:[\w.-]+:)?href\s*=\s*("[^"]*"|'[^']*')/gi;
+const SAFE_HREF = /^(?:#|data:image\/(?:png|jpe?g|gif|webp)[;,]|https?:\/\/)/i;
+
+/**
+ * resvg reads any other `<image>`/`<feImage>` href (absolute, or relative to the working directory) from
+ * the server's disk, which would let an uploaded logo copy a server-side image into a downloadable PNG.
+ * Only in-document references, raster data URIs and http(s) links (resvg never fetches those) pass;
+ * an entity or character reference could decode to a path, so it doesn't.
+ */
+export function hasUnsafeSvgHref(svgText: string): boolean {
+  for (const m of svgText.matchAll(HREF_ATTR)) {
+    if (!SAFE_HREF.test(m[1].slice(1, -1).trim())) return true;
+  }
+  return false;
+}
+
 /**
  * Rasterizes an uploaded logo to PNG (max 1024px long side). SVG goes through resvg — which never
  * executes embedded `<script>` content — everything else is re-decoded and re-encoded via
@@ -33,8 +49,12 @@ export function looksLikeSvg(bytes: Uint8Array): boolean {
 export async function rasterizeLogo(bytes: Uint8Array, ext: ".png" | ".svg" | ".webp"): Promise<Buffer> {
   if (ext === ".svg") {
     const svgText = Buffer.from(bytes).toString("utf8");
+    if (hasUnsafeSvgHref(svgText)) throw new AppError("LOGO_INVALID");
     try {
-      const png = new Resvg(svgText, { fitTo: { mode: "width", value: MAX_LONG_SIDE } }).render().asPng();
+      // Fit the long side: fitting the width alone turns a tall logo into e.g. 1024×10240.
+      const { width, height } = new Resvg(svgText, { font: { loadSystemFonts: false } });
+      const fitTo = height > width ? ({ mode: "height", value: MAX_LONG_SIDE } as const) : ({ mode: "width", value: MAX_LONG_SIDE } as const);
+      const png = new Resvg(svgText, { fitTo }).render().asPng();
       return Buffer.from(png);
     } catch (err) {
       throw new AppError("LOGO_INVALID", { cause: err });
