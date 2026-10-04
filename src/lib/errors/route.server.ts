@@ -16,6 +16,15 @@ export function parseBody<S extends z.ZodTypeAny>(schema: S, data: unknown): z.i
   return parsed.data;
 }
 
+/** A malformed body makes req.json() throw a SyntaxError — the client's mistake (400), not an INTERNAL_ERROR. */
+export async function readJsonBody(req: Request): Promise<unknown> {
+  try {
+    return await req.json();
+  } catch {
+    throw new AppError("VALIDATION_FAILED", { details: { issues: [{ path: "", message: "The request body must be valid JSON." }] } });
+  }
+}
+
 /** Runs a route handler, turning AppError into the envelope and logging everything else as INTERNAL_ERROR. Never serializes a stack trace to the client. */
 export async function runRoute(handler: () => Promise<Response>): Promise<Response> {
   try {

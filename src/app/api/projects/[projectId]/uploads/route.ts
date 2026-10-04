@@ -1,6 +1,6 @@
 import { requireProjectAccess } from "@/lib/auth/session.server";
 import { z } from "zod";
-import { parseBody, runRoute } from "@/lib/errors/route.server";
+import { parseBody, readJsonBody, runRoute } from "@/lib/errors/route.server";
 import { initUpload } from "@/lib/uploads/service.server";
 
 const initUploadSchema = z.object({
@@ -13,7 +13,7 @@ const initUploadSchema = z.object({
 export async function POST(req: Request, ctx: RouteContext<"/api/projects/[projectId]/uploads">) {
   return runRoute(async () => {
     const projectId = await requireProjectAccess((await ctx.params).projectId);
-    const body = parseBody(initUploadSchema, await req.json());
+    const body = parseBody(initUploadSchema, await readJsonBody(req));
     const upload = await initUpload(projectId, body);
     return Response.json({ upload }, { status: 201 });
   });
