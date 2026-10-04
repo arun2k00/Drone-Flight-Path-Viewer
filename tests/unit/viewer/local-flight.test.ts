@@ -24,6 +24,16 @@ describe("pairFiles", () => {
     ]);
     expect(pairFiles(files, { "A.MP4": null })[0].srt).toBeNull();
   });
+
+  it("gives every pair a unique key, so each flight stays selectable", () => {
+    const swapped = pairFiles([f("A.MP4"), f("B.MP4"), f("A.SRT"), f("B.SRT")], { "A.MP4": "B.SRT" });
+    expect(swapped.map((p) => [p.key, p.video?.name ?? null, p.srt?.name ?? null])).toEqual([
+      ["a", "A.MP4", "B.SRT"],
+      ["a.srt", null, "A.SRT"],
+      ["b", "B.MP4", null],
+    ]);
+    expect(pairFiles([f("C.MP4"), f("C.MOV")]).map((p) => p.key)).toEqual(["c", "c.mov"]);
+  });
 });
 
 describe("loadLocalFlight", () => {

@@ -14,7 +14,7 @@ export interface FlightFile {
 }
 
 export interface FlightPair<F extends FlightFile = File> {
-  key: string; // lower-cased base name of whichever file anchors the pair
+  key: string; // lower-cased base name of whichever file anchors the pair; its full lower-cased name if that base name is taken
   video: F | null;
   srt: F | null;
 }
@@ -41,6 +41,15 @@ export function pairFiles<F extends FlightFile>(files: F[], overrides: Record<st
     return { key: baseName(video.name), video, srt };
   });
   for (const srt of srts) if (!used.has(srt)) pairs.push({ key: baseName(srt.name), video: null, srt });
+
+  // The key selects a flight, so it must be unique: re-pairing A.MP4 with B.SRT leaves A.SRT on its own under the base name "a".
+  const taken = new Set<string>();
+  for (const pair of pairs) {
+    const name = (pair.video ?? pair.srt)!.name.toLowerCase();
+    if (taken.has(pair.key)) pair.key = name;
+    for (let n = 2; taken.has(pair.key); n++) pair.key = `${name} (${n})`;
+    taken.add(pair.key);
+  }
   return pairs.sort((a, b) => a.key.localeCompare(b.key));
 }
 
