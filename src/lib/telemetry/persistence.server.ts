@@ -62,6 +62,11 @@ export async function saveFlightPath(projectId: string, flightPath: FlightPathGe
   await getStorage().save(keys.flightPath(projectId), JSON.stringify(flightPath));
 }
 
+/** Analysis of a track without GPS: a path saved from a previously analyzed SRT must not outlive it. */
+export async function deleteFlightPath(projectId: string): Promise<void> {
+  await getStorage().delete(keys.flightPath(projectId));
+}
+
 export async function loadFlightPath(projectId: string): Promise<FlightPathGeoJson> {
   const storage = getStorage();
   if (!(await storage.exists(keys.telemetryData(projectId)))) throw new AppError("ANALYSIS_REQUIRED");
