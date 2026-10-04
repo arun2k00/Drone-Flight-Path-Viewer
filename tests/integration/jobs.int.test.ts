@@ -12,9 +12,7 @@ describe("cancelJob", () => {
       data: { projectId: project.id, status: "COMPLETE", progress: 1, finishedAt: new Date(), settings: { resolution: "original", quality: "high" }, overlaySnapshot: {}, telemetrySettingsSnapshot: {} },
     });
     // cancelJob read the job while it was still running; it completed before the cancel was written.
-    const findUnique = prisma.renderJob.findUnique.bind(prisma.renderJob);
-    vi.spyOn(prisma.renderJob, "findUnique").mockImplementationOnce(((args: Parameters<typeof findUnique>[0]) =>
-      findUnique(args).then((row) => row && { ...row, status: "RUNNING", finishedAt: null })) as typeof prisma.renderJob.findUnique);
+    vi.spyOn(prisma.renderJob, "findUnique").mockResolvedValueOnce({ ...job, status: "RUNNING", finishedAt: null } as never);
 
     await cancelJob(job.id);
     expect((await prisma.renderJob.findUniqueOrThrow({ where: { id: job.id } })).status).toBe("COMPLETE");
