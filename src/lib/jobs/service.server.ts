@@ -78,12 +78,14 @@ export async function cancelJob(jobId: string): Promise<JobDto> {
   const inProcess = getJobRunner().cancel(jobId);
   const cancelledData = { status: "CANCELLED" as const, finishedAt: new Date(), errorCode: "EXPORT_CANCELLED", errorMessage: formatCatalogMessage("EXPORT_CANCELLED") };
 
+  // Only while still active: the job may have finished since it was read above, and a COMPLETE result must not turn into CANCELLED.
+  const stillActive = { id: jobId, status: { in: [...ACTIVE_STATUSES] } };
   if (wasQueued) {
     // A queued job never started running FFmpeg — remove it from the queue and mark it cancelled directly.
-    await prisma.renderJob.update({ where: { id: jobId }, data: cancelledData });
+    await prisma.renderJob.updateMany({ where: stillActive, data: cancelledData });
   } else if (!inProcess) {
-    // RUNNING but not tracked by this process (orphaned after a restart, before startup recovery ran) — cancel directly.
-    await prisma.renderJob.update({ where: { id: jobId }, data: cancelledData });
+    // RUNNING but not tracked by this process (orphaned after a restart, before startup recovery ran, or it just finished) — cancel directly.
+    await prisma.renderJob.updateMany({ where: stillActive, data: cancelledData });
   }
   // else: RUNNING and in-process — the abort signal propagates into export-service.server.ts, which
   // marks the job CANCELLED itself once FFmpeg actually stops.
