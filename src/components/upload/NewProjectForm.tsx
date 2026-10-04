@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileDropzone } from "@/components/upload/FileDropzone";
 import { UploadProgressRow } from "@/components/upload/UploadProgressRow";
+import { formatBytes } from "@/lib/format/bytes";
 import { UploadError, uploadFile, type UploadProgress } from "@/lib/uploads/client.browser";
 import { cn } from "@/lib/utils";
 import type { ProjectDto } from "@/types/api";
@@ -101,7 +102,7 @@ export function NewProjectForm({ maxVideoBytes, maxSrtBytes }: { maxVideoBytes: 
       <div className="grid gap-4 sm:grid-cols-2">
         <FileDropzone
           label="Drop drone video here"
-          hint="MP4 · MOV · M4V (max 4 GB)"
+          hint={`MP4 · MOV · M4V (max ${formatBytes(maxVideoBytes)})`}
           accept=".mp4,.mov,.m4v"
           extensions={[".mp4", ".mov", ".m4v"]}
           maxSizeBytes={maxVideoBytes}
@@ -112,7 +113,7 @@ export function NewProjectForm({ maxVideoBytes, maxSrtBytes }: { maxVideoBytes: 
         />
         <FileDropzone
           label="Drop SRT telemetry here"
-          hint="DJI .SRT (max 50 MB)"
+          hint={`DJI .SRT (max ${formatBytes(maxSrtBytes)})`}
           accept=".srt"
           extensions={[".srt"]}
           maxSizeBytes={maxSrtBytes}
