@@ -110,7 +110,8 @@ export async function putChunk(
   activeLocks.add(uploadId);
   try {
     const upload = await prisma.upload.findUnique({ where: { id: uploadId } });
-    if (!upload) throw new AppError("UPLOAD_NOT_FOUND");
+    // ABORTED = superseded by a newer upload of the same role, whose init deleted this one's temp file.
+    if (!upload || upload.status !== "PENDING") throw new AppError("UPLOAD_NOT_FOUND");
 
     const storage = getStorage();
     const stat = await storage.stat(upload.tempKey);
@@ -147,7 +148,7 @@ async function failComplete(uploadId: string, tempKey: string, error: AppError):
 
 export async function completeUpload(uploadId: string): Promise<StoredFileDto> {
   const upload = await prisma.upload.findUnique({ where: { id: uploadId } });
-  if (!upload) throw new AppError("UPLOAD_NOT_FOUND");
+  if (!upload || upload.status !== "PENDING") throw new AppError("UPLOAD_NOT_FOUND");
 
   const storage = getStorage();
   const stat = await storage.stat(upload.tempKey);
