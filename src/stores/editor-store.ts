@@ -290,6 +290,8 @@ export function createEditorStore(projectId: string, initial: InitialEditorState
       },
 
       removeElement(id) {
+        // Only video markers can be removed; anything else (e.g. Delete on a selected panel) must not touch the config or history.
+        if (!get().config.elements.some((el) => el.id === id && el.type === "videoMarker")) return;
         updateConfig((config) => ({ ...config, template: "custom", elements: config.elements.filter((el) => !(el.id === id && el.type === "videoMarker")) }));
         if (get().selectedId === id) set({ selectedId: null });
       },

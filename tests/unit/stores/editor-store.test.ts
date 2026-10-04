@@ -97,3 +97,21 @@ describe("editor store autosave", () => {
     expect(requests).toHaveLength(1);
   });
 });
+
+describe("editor store removeElement", () => {
+  it("ignores elements that aren't video markers instead of switching the template to custom", () => {
+    const { store, config } = makeStore();
+    store.getState().removeElement(config.elements[0].id);
+    expect(store.getState().config).toBe(config);
+    expect(store.getState().past).toHaveLength(0);
+    expect(store.getState().saveState).toBe("saved");
+  });
+
+  it("removes a video marker", () => {
+    const { store } = makeStore();
+    store.getState().addVideoMarker({ x: 0.5, y: 0.5, time: 10 }, "Tower");
+    const marker = store.getState().config.elements.find((el) => el.type === "videoMarker")!;
+    store.getState().removeElement(marker.id);
+    expect(store.getState().config.elements.some((el) => el.id === marker.id)).toBe(false);
+  });
+});
