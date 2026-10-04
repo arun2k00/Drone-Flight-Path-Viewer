@@ -11,6 +11,7 @@ import type {
 } from "@/types/telemetry";
 import { deriveGpsSeries, type DerivedGpsSeries } from "./derive";
 import { mapKey, normalizeKey } from "./fields";
+import { maxOf, minOf } from "./numbers";
 import { decodeSrtBytes, tokenizeSrt } from "./srt-cues";
 import { pointsToSeries } from "./series";
 import { STRATEGIES } from "./strategies";
@@ -178,7 +179,7 @@ export function parseTelemetry(input: Uint8Array | string, settings: Pick<Teleme
   }
 
   // 3 GPS spike filter (mutates points in place)
-  issues.push(...filterGpsSpikes(points));
+  for (const issue of filterGpsSpikes(points)) issues.push(issue);
 
   // Debug records are built as each cue is processed, before spike/ordering/duplicate issues exist —
   // resync every record's issue list against the final, complete issues array.
@@ -191,7 +192,7 @@ export function parseTelemetry(input: Uint8Array | string, settings: Pick<Teleme
   for (const record of debug) record.issues = issuesByCue.get(record.cueOrdinal) ?? [];
 
   const timeRange = points.length
-    ? { start: Math.min(...points.map((p) => p.startTime)), end: Math.max(...points.map((p) => p.endTime)) }
+    ? { start: minOf(points.map((p) => p.startTime)), end: maxOf(points.map((p) => p.endTime)) }
     : { start: 0, end: 0 };
   const series = pointsToSeries(points);
   const derived = deriveGpsSeries(series, timeRange);

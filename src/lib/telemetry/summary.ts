@@ -2,6 +2,7 @@ import { formatCatalogMessage } from "@/lib/errors/codes";
 import type { WarningDto } from "@/types/api";
 import type { GeoBounds, ParseReport, TelemetryCapabilities, TelemetryPoint, TelemetrySummary } from "@/types/telemetry";
 import type { DerivedGpsSeries } from "./derive";
+import { maxOf, minOf } from "./numbers";
 
 function median(sortedDeltas: number[]): number | null {
   if (sortedDeltas.length === 0) return null;
@@ -30,7 +31,7 @@ function buildWarnings(
 
 function numericRange(values: number[]): { min: number; max: number } | null {
   if (values.length === 0) return null;
-  return { min: Math.min(...values), max: Math.max(...values) };
+  return { min: minOf(values), max: maxOf(values) };
 }
 
 /** pathLengthMeters is filled in by the caller from the simplified flight path. */
@@ -69,13 +70,10 @@ export function buildSummary(
 
   const gpsCoverage = n ? gpsCount / n : 0;
   const withGps = points.filter((p) => p.latitude !== null && p.longitude !== null);
+  const latitudes = withGps.map((p) => p.latitude as number);
+  const longitudes = withGps.map((p) => p.longitude as number);
   const bounds: GeoBounds | null = withGps.length
-    ? {
-        minLat: Math.min(...withGps.map((p) => p.latitude as number)),
-        maxLat: Math.max(...withGps.map((p) => p.latitude as number)),
-        minLon: Math.min(...withGps.map((p) => p.longitude as number)),
-        maxLon: Math.max(...withGps.map((p) => p.longitude as number)),
-      }
+    ? { minLat: minOf(latitudes), maxLat: maxOf(latitudes), minLon: minOf(longitudes), maxLon: maxOf(longitudes) }
     : null;
 
   const firstWithGps = withGps[0];
@@ -109,7 +107,7 @@ export function buildSummary(
     bounds,
     relativeAltitudeRange: numericRange(points.map((p) => p.relativeAltitude).filter((v): v is number => v !== null)),
     absoluteAltitudeRange: numericRange(points.map((p) => p.absoluteAltitude).filter((v): v is number => v !== null)),
-    maxSpeedMps: autoSpeeds.length ? Math.max(...autoSpeeds) : null,
+    maxSpeedMps: autoSpeeds.length ? maxOf(autoSpeeds) : null,
     pathLengthMeters,
     recordedAtStart: firstRecordedAt,
     recordedAtEnd: lastRecordedAt,
